@@ -1,0 +1,59 @@
+---
+
+- name: lab3
+  hosts: routers
+  tasks:
+    - name: configure ospf with template
+      ios_config:
+        src: ./ospf/management.j2
+      register: configuration
+
+    - debug:
+        msg: "{{configuration.updates}}"
+      when: configuration.changed
+    
+    - name: interfaces
+      ios_config:
+        src: ./ospf/interfaces.j2
+      register: int
+
+    - debug:
+        msg: "{{int.updates}}"
+      when: int.changed
+    
+    - name: ospf_areas config
+      ios_config:
+        src: ./ospf/ospf_areas.j2
+      register: osp
+
+    - debug:
+        msg: "{{osp.updates}}"
+      when: osp.changed
+
+    # https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_filters.html
+    - name: output ip ospf neighbor
+      ios_command:
+        commands:
+          - show ip ospf neigh
+      register: ospf_n
+
+    - debug:
+        msg: "{{ ospf_n.stdout[0] | regex_search('(?:[0-9]{1,3}\\.){3}[0-9]{1,3}') }}"
+
+
+    - name: output ip route ospf
+      ios_command:
+        commands:
+            - show ip rou ospf 
+      register: ospf_r
+
+    - debug:
+        msg: "{{ ospf_r.stdout[0] | regex_findall('\\bO IA +(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b') }}"
+
+    - name: ospf_auth config
+      ios_config:
+        src: ./ospf/ospf_auth.j2
+        defaults: true
+      register: aut
+      no_log: yes
+  

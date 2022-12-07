@@ -1,0 +1,184 @@
+Building configuration...
+
+Current configuration : 2668 bytes
+!
+! Last configuration change at 18:10:58 UTC Sun Dec 4 2022 by carlos
+!
+version 16.9
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+platform qfp utilization monitor load 80
+no platform punt-keepalive disable-kernel-core
+platform console virtual
+!
+hostname R1
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+ip domain name carlos
+!
+!
+!
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+crypto pki trustpoint TP-self-signed-2002668288
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-2002668288
+ revocation-check none
+ rsakeypair TP-self-signed-2002668288
+!
+!
+crypto pki certificate chain TP-self-signed-2002668288
+!
+!
+!
+!
+!
+!
+!
+!
+license udi pid CSR1000V sn 9Z3JCJCSD7X
+no license smart enable
+diagnostic bootup level minimal
+!
+spanning-tree extend system-id
+!
+netconf-yang
+!
+restconf
+!
+username carlos privilege 15 password 7 0205054907091C
+!
+redundancy
+!
+!
+!
+!
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface Loopback0
+ ip address 1.1.1.1 255.255.255.255
+ ip access-group SSH in
+!
+interface GigabitEthernet1
+ description VBox
+ ip address dhcp
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+ip forward-protocol nd
+no ip http server
+ip http authentication local
+ip http secure-server
+ip route 2.2.2.2 255.255.255.255 192.168.10.6
+!
+ip ssh version 2
+ip ssh pubkey-chain
+  username carlos
+   key-hash ssh-rsa B383102A5EF59942B7173B42DB543F5E 
+   key-hash ssh-rsa B8D3B06DDA5CE4922DC5FE5AAA84CB55 
+!
+!
+ip access-list standard PRO
+ip access-list standard SSH
+ permit 192.168.10.6
+ deny   any
+ip access-list standard std_acl
+ permit 192.168.1.200
+ deny   192.168.2.0 0.0.0.255
+!
+ip access-list extended ABC
+ permit ip host 192.168.10.6 any
+logging trap notifications
+logging source-interface Loopback0
+logging host 192.168.10.6
+access-list 10 permit 192.168.10.6
+!
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+banner motd ^C
+*                                           *
+**                                         **
+***                                       ***
+***  Cisco Networking Academy             ***
+***                                       ***
+***  This software is provided for        ***
+***   Educational Purposes                ***
+***    Only in Networking Academies       ***
+***                                       ***
+**                                         **
+*                                           *
+^C
+!
+line con 0
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login local
+ transport input ssh
+line vty 5 15
+ login local
+ transport input ssh
+!
+ntp server 192.168.10.6
+!
+!
+!
+!
+!
+end

@@ -1,0 +1,89 @@
+---
+- name: lab2
+  hosts: routers
+  tasks:
+    # - name: hostname
+    #   ios_config:
+    #     commands: hostname {{inventory_hostname}}
+    #   when: inventory_hostname in groups['routers']
+    - name: hostname
+      ios_config:
+        lines: hostname {{hostname}}
+       
+    - name: password_encryption
+      ios_config:
+        lines: service password-encryption
+
+    #ntp server will be linux vm and will use localtime (UTC)
+    - name: configure ntp clients
+      ios_config:
+        lines: ntp server {{ntp_server}}
+
+    - name: setup EEM to see commands
+      ios_config:
+        parents:
+          - event manager applet show_me_commands
+        lines:
+          - event cli pattern ".*" sync no skip no
+          - action 1.0 syslog msg "$_cli_msg"
+        
+    # First create int loopback for for both routers
+    - name: configure loopbacks
+      ios_config:
+        parents:
+          - interface {{loopback['name']}}
+        lines:
+          - ip address {{ loopback['ip'] }} {{ loopback['subnet'] }}
+
+
+    # Routing
+    - name: routing for loopback
+      ios_config:
+        lines:
+          - ip route {{route['ip']}} {{route['subnet']}} {{route['nextHop']}}
+    
+     # Syslog
+    - name: syslog
+      ios_config:
+        lines:
+          - logging trap notifications
+          - logging source-interface {{loopback['name']}}
+          - logging host {{ syslog_server }}
+    
+        
+
+    # - name: setup clock for ntp master #it is not in configuration!! so command module
+    #   ios_command:
+    #     commands: clock set {{clock_time}}
+    #   when: "inventory_hostname == ntp_master" 
+    
+    # - name: config for ntp master #it is not in configuration!! so command module
+    #   ios_config:
+    #     lines: ntp master 2
+    #   when: "inventory_hostname == ntp_master"
+    
+    # - name: configure ntp client
+    #   ios_config:
+    #     lines: ntp server {{ hostvars[ntp_master]['ansible_host'] }}
+    #   when: "inventory_hostname != ntp_master"
+
+    # - debug:
+    #     msg: "check {{ loopback['name'] }}"
+    #   when: "inventory_hostname != host_vars"
+      
+
+
+    # - name: password_encryption
+    #   ios_config:
+    #     commands: service password-encrytion
+      
+
+    # - debug:
+    #     msg: "Inventory hostname {{inventory_hostname}}"
+    #   when: inventory_hostname in groups['routers']
+
+
+    # - debug:
+    #     msg: "items {{item}}"
+    #   with_items:
+    #     - routers

@@ -1,0 +1,6 @@
+{% for i in loopbacks %}
+interface Loopback{{ i | replace('lo', '')}}
+ description {{ loopbacks[i].description | default("is missing") }}
+ ip address {{ loopbacks[i].ip | ipaddr('address') }} {{ loopbacks[i].ip | ipaddr('netmask') }}
+{% endfor %}
+

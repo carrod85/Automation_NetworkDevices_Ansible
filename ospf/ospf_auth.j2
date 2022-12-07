@@ -1,0 +1,9 @@
+key chain CarlosChain
+ no description
+ key 1
+  key-string 7 {{ospf_pass}}
+   cryptographic-algorithm md5
+
+
+interface GigabitEthernet1
+ ip ospf authentication key-chain CarlosChain

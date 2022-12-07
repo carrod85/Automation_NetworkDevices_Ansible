@@ -1,0 +1,30 @@
+---
+hostname: R1
+
+
+loopback: 
+  name: Loopback0
+  ip: 1.1.1.1
+  subnet: 255.255.255.255
+
+route: 
+  ip: 2.2.2.2
+  subnet: 255.255.255.255
+  nextHop: 192.168.10.6
+
+
+
+loopbacks:
+  lo2:
+    ip: 5.5.5.5/25
+    description: users
+    ospf_area: 2
+  lo3:
+    ip: 6.6.6.6/26
+  lo4:
+    ip: 7.7.7.7/22
+    ospf_area: 3
+  lo5:
+    ip: 9.9.9.9/22
+    description: partners
+    ospf_area: 4

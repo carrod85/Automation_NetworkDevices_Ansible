@@ -1,0 +1,9 @@
+hostname {{ hostname }}
+
+service password-encryption
+
+
+router ospf 1
+ network {{ hostNetwork }} {{ hostWildCard }} area 0
+
+

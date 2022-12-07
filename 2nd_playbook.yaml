@@ -1,0 +1,97 @@
+---
+
+  - name: lab2
+    hosts: R1
+    tasks:
+      - name: backup of running config before anything else
+        ios_config:
+          backup: True
+          backup_options:
+            filename: "{{hostname}}.backup"
+            dir_path: ./ios_backups
+
+      - name: 1 router configuration and saved to start up if changes were made
+        ios_config:
+          save_when: changed
+          lines: 
+            - hostname {{hostname}}
+            - service password-encryption
+            - ntp server {{ntp_server}}
+
+      - name: configure loopbacks
+        ios_config:
+          save_when: changed
+          parents:
+            - interface {{loopback['name']}}
+          lines:
+            - ip address {{loopback['ip']}} {{loopback['subnet']}}
+        
+
+      # Routing
+      - name: routing for loopback
+        ios_config:
+          save_when: changed
+          lines:
+            - ip route {{route['ip']}} {{route['subnet']}} {{route['nextHop']}}
+      
+      # Syslog Logging on checked on defaults so no needed to insert.
+      - name: syslog
+        ios_config:
+          save_when: changed
+          lines:
+            - logging trap notifications
+            - logging source-interface {{loopback['name']}}
+            - logging host {{ syslog_server }}
+        register: ios_changes # just an example how to see changes output
+
+      - name: Gather facts
+        ios_facts:
+          gather_subset:
+            - interfaces
+        register: facts
+
+
+      # - name: show facts
+      #   debug:
+      #     msg:
+      #       - "Hostname: {{ ansible_net_hostname }}"
+      #       - "Model: {{ansible_net_model }}"
+      #       - "IOS type: {{ansible_net_model}}"
+      #       - "Serial number: {{ ansible_net_serialnum }}"
+      #   register: report
+
+      # - name: formating
+      #   debug:
+      #     msg: "{{ item }}"
+      #   loop: "{{ report.msg }}"
+      #   register: reportFormat
+
+      - name: copy report
+        copy:
+          dest: "./reports/{{ hostname }}.info"
+          content: " Hostname: {{ ansible_net_hostname }}\n
+          Model: {{ansible_net_model }}\n
+          IOS type: {{ ansible_net_model }}\n
+          Serial number: {{ ansible_net_serialnum }}\n"
+
+      - name: ACL
+        ios_config:
+          before:
+            - no ip access-list standard SSH
+          parents:
+            - ip access-list standard SSH
+          lines: "{{ acl_vty }}"
+          after:
+            - int Loopback0
+            - ip access-group SSH in
+          replace: block # doesn't work if searches line by line we need mathc 
+          match: exact
+        when: 
+          - "ssh_server in acl_vty[0]"
+          - "'permit' in acl_vty[0]"
+        
+      - name: alert message 
+        debug:
+          msg: "task skipped for possible ssh lock"
+        when: "ssh_server not in acl_vty[0]"
+      

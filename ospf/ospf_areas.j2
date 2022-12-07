@@ -1,0 +1,7 @@
+
+{% for i in loopbacks %}
+interface Loopback{{ i | replace('lo', '')}}
+{% if 'ospf_area' in loopbacks[i] %}
+ ip ospf 1 area {{ loopbacks[i].ospf_area }}
+{% endif %}
+{% endfor %}
